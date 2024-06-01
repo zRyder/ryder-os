@@ -3,5 +3,12 @@ name = "ryder_os"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = ["ryder_os_kernel"]
+
 [dependencies]
-bootloader = "0.9"
+ovmf-prebuilt = "0.1.0-alpha.1"
+
+[build-dependencies]
+ryder_os_kernel = { path = "ryder_os_kernel", artifact = "bin", target = "x86_64-unknown-none" }
+bootloader = "0.11.7"
