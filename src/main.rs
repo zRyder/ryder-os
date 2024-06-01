@@ -1,37 +1,26 @@
-#![no_std]
-#![no_main]
+use std::{env, fs};
 
-use core::panic::PanicInfo;
+fn main() {
+    // read env variables that were set in build script
+    let uefi_path = env!("UEFI_IMAGE");
+    let bios_path = env!("BIOS_IMAGE");
+    let args: Vec<String> = env::args().collect();
 
-static HELLO: &[u8] = b"Hello World!";
 
-/// Entry point override for Operating System named `_start` as it is typically the name for most systems.
-/// This entry point is marked with 'extern "C"' because we want to use the C calling convention here because
-/// at this point, RUST calling conventions would not be specified. `_start` can never return,
-/// denoted by "!" in the return type. `#[no_mangle]` macro prevents unique, hash-like names from
-/// being assigned to functions since we want the function name to be `_start.`
-/// Prints Hello World! to VGA buffer for now
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u8;
+    // choose whether to start the UEFI or BIOS image
+    let uefi = if args.get(1).is_some() {
+        true
+    } else {
+        false
+    };
 
-    for (i, &byte) in HELLO.iter().enumerate() {
-        unsafe {
-            *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
-        }
+    let mut cmd = std::process::Command::new("qemu-system-x86_64");
+    if uefi {
+        cmd.arg("-bios").arg(ovmf_prebuilt::ovmf_pure_efi());
+        cmd.arg("-drive").arg(format!("format=raw,file={uefi_path}"));
+    } else {
+        cmd.arg("-drive").arg(format!("format=raw,file={bios_path}"));
     }
-
-    loop {}
-}
-
-/// Panic handler, called on panic. Since RyderOS needs to run on BareMetal (No underlying OS)
-/// it cannot use the std implementation of `panic_handler`, we must define it ourselves
-/// A `panic_handler` can never return, denoted by "!" in the return type.
-/// # Arguments
-/// * `_info` - [`PanicInfo`](PanicInfo) containing the file and line where the panic happened
-/// and optional panic message
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    loop {}
+    let mut child = cmd.spawn().unwrap();
+    child.wait().unwrap();
 }
