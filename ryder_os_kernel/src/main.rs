@@ -48,7 +48,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         console_writer.height(),
     ).unwrap();
 
-    loop { x86_64::instructions::hlt() }
+    loop { spin_loop() }
 }
 
 /// Panic handler, called on panic. Since RyderOS needs to run on BareMetal (No underlying OS)
