@@ -1,15 +1,19 @@
+#![feature(abi_x86_interrupt)]
 #![no_std]
 #![no_main]
 
 use core::fmt::Write;
 use core::hint::spin_loop;
 
-pub(crate) mod framebuffer;
+pub mod framebuffer;
 pub mod console;
 pub mod serial;
+pub mod interrupts;
+pub mod keyboard;
 
 use core::panic::PanicInfo;
 use bootloader_api::{BootInfo, entry_point};
+use pc_keyboard::{DecodedKey, KeyCode};
 use crate::console::console_writer::ConsoleWriter;
 use crate::framebuffer::frame_buffer_writer::FrameBufferWriter;
 use crate::serial::serial_port;
@@ -33,25 +37,39 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
 
     let frame_buffer_writer = FrameBufferWriter::new(frame_buffer);
     let mut console_writer = ConsoleWriter::new(frame_buffer_writer);
+    let mut keyboard_decoder = keyboard::KeyboardDecoder::new();
 
-    writeln!(console_writer, "Hello GeoStorm").unwrap();
-    writeln!(console_writer, "RyderOS is initiated").unwrap();
-    writeln!(console_writer, "Ryder wrote me!").unwrap();
-    writeln!(console_writer, "Have some other characters").unwrap();
-    writeln!(console_writer, "Decimal: {}", 12345).unwrap();
-    writeln!(console_writer, "Hex: {:#x}", 0xdead_beef_u64).unwrap();
-    writeln!(console_writer, "Binary: {:#b}", 42).unwrap();
-    writeln!(
-        console_writer,
-        "Framebuffer: {}x{}",
-        console_writer.width(),
-        console_writer.height(),
-    ).unwrap();
+    interrupts::init();
+    serial_println!("Interrupts enabled");
 
-    loop { spin_loop() }
+    loop {
+        if let Some(scan_code) = interrupts::handlers::keyboard::take_scan_code() {
+            serial_println!("Keyboard scancode received: {:#04x}", scan_code);
+
+            if let Some(decoded_key) = keyboard_decoder.decode(scan_code) {
+                match decoded_key {
+                    DecodedKey::Unicode(character) => {
+                        console_writer.write_char(character).unwrap();
+                    },
+                    DecodedKey::RawKey(key) => {
+                        match key {
+                            KeyCode::Backspace => {
+                                console_writer.write_str("BACK").unwrap();
+                            },
+                            _ => {
+                                serial_println!("Unprocessed key input {:?}", key);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        spin_loop();
+    }
 }
 
-/// Panic handler, called on panic. Since RyderOS needs to run on BareMetal (No underlying OS)
+/// Panic handlers, called on panic. Since RyderOS needs to run on BareMetal (No underlying OS)
 /// it cannot use the std implementation of `panic_handler`, we must define it ourselves
 /// A `panic_handler` can never return, denoted by "!" in the return type.
 /// # Arguments

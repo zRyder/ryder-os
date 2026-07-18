@@ -9,8 +9,8 @@ fn main() {
 
     // specify output paths
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let uefi_path = out_dir.join("blog_os-uefi.img");
-    let bios_path = out_dir.join("blog_os-bios.img");
+    let uefi_path = out_dir.join("ryder_os-uefi.img");
+    let bios_path = out_dir.join("ryder_os-bios.img");
 
     // create the disk images
     disk_builder.create_uefi_image(&uefi_path).unwrap();
