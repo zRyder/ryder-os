@@ -11,4 +11,4 @@ ovmf-prebuilt = "0.1.0-alpha.1"
 
 [build-dependencies]
 ryder_os_kernel = { path = "ryder_os_kernel", artifact = "bin", target = "x86_64-unknown-none" }
-bootloader = "0.11.7"
+bootloader = "0.11.15"

@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bootloader_api = "0.11.7"
+bootloader_api = {git = "https://github.com/rust-osdev/bootloader.git", branch = "release/0.11.16"}
+noto-sans-mono-bitmap = {version = "0.3.2", features = ["all"]}
+uart_16550 = "0.6.0"
+spin = "0.12.2"
 
 [[bin]]
 name = "ryder_os_kernel"
