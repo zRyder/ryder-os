@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::env;
 
 fn main() {
     // read env variables that were set in build script
@@ -18,6 +18,7 @@ fn main() {
     if uefi {
         cmd.arg("-bios").arg(ovmf_prebuilt::ovmf_pure_efi());
         cmd.arg("-drive").arg(format!("format=raw,file={uefi_path}"));
+        cmd.arg("-serial").arg(format!("stdio"));
     } else {
         cmd.arg("-drive").arg(format!("format=raw,file={bios_path}"));
     }

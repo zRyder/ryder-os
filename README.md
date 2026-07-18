@@ -4,16 +4,16 @@ RyderOS is a bare metal operating system written entirely in Rust.
 ___
 
 ## Building
-RyderOS is build on Rust version 1.78.0-nightly and is the recommended 
+RyderOS is build on Rust version 1.97.0-nightly (82bee9650 2026-05-09) and is the recommended 
 version building RyderOS.
 
 ### Specifying Target
 RyderOS is built on the bare metal environment `x86_64-unknown-none`. This environment will describe an 
 [embedded](https://en.wikipedia.org/wiki/Embedded_system), and 
-[ARM](https://en.wikipedia.org/wiki/ARM_architecture_family) based system. This environment
+[x86_64](https://en.wikipedia.org/wiki/X86-64) based system. This environment
 will have no underlying Operating System which makes it perfect to build RyderOS on top of.
 
-RyderOs can be built by running the following command:
+RyderOS can be built by running the following command:
 ```shell
 cargo build --target x86_64-unknown-uefi
 ```
